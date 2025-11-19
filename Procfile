@@ -1,1 +1,1 @@
-web: python love_bot.py
+worker: python love_bot.py

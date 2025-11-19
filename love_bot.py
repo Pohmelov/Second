@@ -120,6 +120,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def get_correct_form(number, forms):
+    """
+    Возвращает правильную форму слова для числа
+    forms: [форма для 1, форма для 2-4, форма для 5-0]
+    Например: get_correct_form(5, ['день', 'дня', 'дней']) -> 'дней'
+    """
+    if number % 10 == 1 and number % 100 != 11:
+        return forms[0]
+    elif 2 <= number % 10 <= 4 and (number % 100 < 10 or number % 100 >= 20):
+        return forms[1]
+    else:
+        return forms[2]
+
 def create_main_keyboard():
     """Создает нижнее меню с основными командами"""
     keyboard = [
@@ -196,13 +209,14 @@ async def start_command(update, context):
 async def days_command(update, context):
     """Показывает сколько дней осталось до годовщины"""
     days_left = get_days_until_anniversary()
+    days_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
     
     if days_left == 0:
         message = "🎉 Малыш, с годовщиной)) 🎉\nСегодня наш особенный день) Люблю тебя больше всего на свете) Мы дождались)💕"
     elif days_left == 1:
-        message = "Завтра наша годовщина) Всего 1 день остался)❤️\nЯ так тебя люблю))"
+        message = f"Завтра наша годовщина) Всего 1 {days_form} остался)❤️\nЯ так тебя люблю))"
     else:
-        message = f"До нашей годовщины\nосталось {days_left} дней))💕"
+        message = f"До нашей годовщины\nосталось {days_left} {days_form}))💕"
     
     await update.message.reply_text(message, reply_markup=create_main_keyboard())
 
@@ -223,28 +237,32 @@ async def holidays_command(update, context):
     
     for holiday_name, holiday_date in sorted_holidays:
         days_left = get_days_until_holiday(holiday_date)
+        days_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
         
         if days_left == 0:
             holiday_text += f" {holiday_name} - СЕГОДНЯ!🎊\n"
         elif days_left == 1:
             holiday_text += f" {holiday_name} - завтра! ({holiday_date.strftime('%d.%m')})\n"
         else:
-            holiday_text += f" {holiday_name} - через {days_left} дней ({holiday_date.strftime('%d.%m')})\n"
+            holiday_text += f" {holiday_name} - через {days_left} {days_form} ({holiday_date.strftime('%d.%m')})\n"
     
     await update.message.reply_text(holiday_text, reply_markup=create_main_keyboard())
 
 async def days_together_command(update, context):
     """Показывает сколько дней мы уже вместе"""
     days_together = get_days_together()
+    days_form = get_correct_form(days_together, ['день', 'дня', 'дней'])
     
     if days_together == 365:
-        message = f"Ровно {days_together} дней мы вместе))❤️\nЭто был самый счастливый год в моей жизни)) Люблю тебя безумно)❤️❤️❤️"
+        message = f"Ровно {days_together} {days_form} мы вместе))❤️\nЭто был самый счастливый год в моей жизни)) Люблю тебя безумно)❤️❤️❤️"
     elif days_together > 365:
         years = days_together // 365
         remaining_days = days_together % 365
-        message = f"❤️ Уже {years} год и {remaining_days} дней мы вместе)\n\nВсего {days_together} дней счастья) И с каждым днем я люблю тебя все сильнее) 💕"
+        years_form = get_correct_form(years, ['год', 'года', 'лет'])
+        days_form_remaining = get_correct_form(remaining_days, ['день', 'дня', 'дней'])
+        message = f"❤️ Уже {years} {years_form} и {remaining_days} {days_form_remaining} мы вместе)\n\nВсего {days_together} {days_form} счастья) И с каждым днем я люблю тебя все сильнее) 💕"
     else:
-        message = f"💕 Мы вместе уже {days_together} дней)\n\nКаждый из них был наполнен твоей любовью и теплом) Я самый счастливый)💖"
+        message = f"💕 Мы вместе уже {days_together} {days_form})\n\nКаждый из них был наполнен твоей любовью и теплом) Я самый счастливый)💖"
     
     await update.message.reply_text(message, reply_markup=create_main_keyboard())
 
@@ -285,14 +303,16 @@ async def send_daily_reminder(context: ContextTypes.DEFAULT_TYPE):
         
     days_left = get_days_until_anniversary()
     days_together = get_days_together()
+    days_left_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
+    days_together_form = get_correct_form(days_together, ['день', 'дня', 'дней'])
     
     # Основное сообщение о годовщине
     if days_left == 0:
         message = "🎉 С годовщиной, мое солнышко)) 🎉\nСегодня наш особенный день)) Люблю тебя больше всего на свете))💕\nТы сделала меня самым счастливым человеком!"
     elif days_left == 1:
-        message = "Завтра наша годовщина, милая))\nВсего 1 день остался)\nЯ так тебя люблю))❤️"
+        message = f"Завтра наша годовщина, милая))\nВсего 1 {days_left_form} остался)\nЯ так тебя люблю))❤️"
     else:
-        message = f"❤️ До нашей годовщины осталось {days_left} дней))\nА сегодня у нас уже {days_together} дней вместе))💕"
+        message = f"❤️ До нашей годовщины осталось {days_left} {days_left_form}))\nА сегодня у нас уже {days_together} {days_together_form} вместе))💕"
     
     # Отправляем основное сообщение во все сохраненные чаты
     for chat_id in CHAT_IDS.copy():

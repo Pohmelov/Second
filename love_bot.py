@@ -1,6 +1,7 @@
 import os
 import logging
 import random
+import json
 from datetime import datetime, timedelta, timezone
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
@@ -12,8 +13,31 @@ ANNIVERSARY_DATE = datetime(2026, 10, 26)  # Годовщина 26 октябр�
 START_DATE = datetime(2024, 10, 26)  # Дата начала отношений
 TIMEZONE_OFFSET = 3  # Московское время UTC+3
 
-# Хранилище для ID чатов (в реальном приложении используйте базу данных)
-CHAT_IDS = set()
+# Файл для сохранения chat_id
+CHAT_IDS_FILE = "chat_ids.json"
+
+def load_chat_ids():
+    """Загружает chat_id из файла"""
+    try:
+        if os.path.exists(CHAT_IDS_FILE):
+            with open(CHAT_IDS_FILE, 'r') as f:
+                data = json.load(f)
+                return set(data)
+        return set()
+    except Exception as e:
+        logger.error(f"Ошибка загрузки chat_ids: {e}")
+        return set()
+
+def save_chat_ids():
+    """Сохраняет chat_id в файл"""
+    try:
+        with open(CHAT_IDS_FILE, 'w') as f:
+            json.dump(list(CHAT_IDS), f)
+    except Exception as e:
+        logger.error(f"Ошибка сохранения chat_ids: {e}")
+
+# Хранилище для ID чатов
+CHAT_IDS = load_chat_ids()
 
 # Список любовных сообщений для случайной отправки
 LOVE_MESSAGES = [
@@ -146,6 +170,7 @@ async def start_command(update, context):
     
     # Сохраняем ID чата для ежедневных уведомлений
     CHAT_IDS.add(chat_id)
+    save_chat_ids()
     
     days_together = get_days_together()
     
@@ -278,6 +303,7 @@ async def send_daily_reminder(context: ContextTypes.DEFAULT_TYPE):
             logger.error(f"Ошибка отправки в chat_id {chat_id}: {e}")
             # Удаляем невалидный chat_id
             CHAT_IDS.discard(chat_id)
+            save_chat_ids()
 
 async def send_holiday_reminders(context: ContextTypes.DEFAULT_TYPE):
     """Проверяет и отправляет уведомления о праздниках"""
@@ -314,6 +340,7 @@ async def send_message_to_all_chats(context, message, log_description):
             logger.error(f"Ошибка отправки {log_description} в chat_id {chat_id}: {e}")
             # Удаляем невалидный chat_id
             CHAT_IDS.discard(chat_id)
+            save_chat_ids()
 
 def main():
     """Основная функция"""

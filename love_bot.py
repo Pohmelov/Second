@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import JobQueue  # Явный импорт JobQueue
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')  # Получаем токен из переменных окружения
 
@@ -109,7 +110,7 @@ HOLIDAYS = {
     "❤️ Наша годовщина": {
         "date": datetime(2026, 10, 26),
         "day_before_message": "💝 Завтра наша годовщина!! Я так тебя люблю и жду этот день!)",
-        "day_of_message": "🎉 С НАШЕЙ ГОДОВЩИНОЙ, МОЯ ЛЮБИМАЯ!!! 💕\nЭто самый счастливый день в моей жизни! Спасибо, что ты со мной!\nЯ тебя безумно люблю, малышечка моя, Нинуличка))💖"
+        "day_of_message": "🎉 С НАШЕЙ ГОДОВЩИНОЮ, МОЯ ЛЮБИМАЯ!!! 💕\nЭто самый счастливый день в моей жизни! Спасибо, что ты со мной!\nЯ тебя безумно люблю, малышечка моя, Нинуличка))💖"
     },
 }
 
@@ -295,7 +296,7 @@ async def handle_message(update, context):
         )
 
 async def send_daily_reminder(context: ContextTypes.DEFAULT_TYPE):
-    """Ежедневное напоминание в 16:00 по Москве (13:00 UTC)"""
+    """Ежедневное напоминание в 13:00 по Москве (10:00 UTC)"""
     # Проверяем, что бот инициализирован
     if not context.bot:
         logger.error("Bot not initialized in job context")
@@ -372,7 +373,17 @@ def main():
         return
     
     try:
+        # Создаем Application с явным указанием JobQueue
         application = Application.builder().token(BOT_TOKEN).build()
+        
+        # Получаем JobQueue
+        job_queue = application.job_queue
+        
+        if job_queue is None:
+            logger.error("JobQueue не инициализирована!")
+            print("❌ ОШИБКА: JobQueue не инициализирована!")
+            print("💡 Решение: Убедитесь, что установлен пакет python-telegram-bot[job-queue]")
+            return
         
         # Добавляем обработчики команд
         application.add_handler(CommandHandler("start", start_command))
@@ -385,43 +396,46 @@ def main():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
         
         # Настраиваем ежедневные уведомления с помощью JobQueue
-        job_queue = application.job_queue
         
-        # Обычные уведомления в 16:00 по МСК (13:00 UTC)
-        daily_time = datetime.strptime("13:00", "%H:%M").time()
+        # Обычные уведомления в 13:00 по МСК (10:00 UTC)
+        daily_time = datetime.strptime("10:00", "%H:%M").time()
+        daily_time_obj = datetime.combine(datetime.today(), daily_time).time()
         
         # Праздничные уведомления в 00:00 по МСК (21:00 UTC предыдущего дня)
         holiday_time = datetime.strptime("21:00", "%H:%M").time()
+        holiday_time_obj = datetime.combine(datetime.today(), holiday_time).time()
         
-        # Добавляем ежедневную job для основного напоминания (16:00 МСК)
+        # Добавляем ежедневную job для основного напоминания (13:00 МСК)
         job_queue.run_daily(
             send_daily_reminder,
-            time=daily_time,
+            time=daily_time_obj,
+            days=tuple(range(7)),  # Каждый день недели
             name="daily_reminder"
         )
         
         # Добавляем ежедневную job для проверки праздников (00:00 МСК)
         job_queue.run_daily(
             send_holiday_reminders,
-            time=holiday_time,
+            time=holiday_time_obj,
+            days=tuple(range(7)),  # Каждый день недели
             name="holiday_reminders"
         )
         
         print("✅ Бот запущен! Теперь ваша девушка может написать боту в Telegram")
-        print("📅 Обычные уведомления настроены на 16:00 по Москве")
-        print("🎉 Праздничные уведомления настроены на 00:00 по Москве")
+        print("📅 Обычные уведомления настроены на 13:00 по Москве (10:00 UTC)")
+        print("🎉 Праздничные уведомления настроены на 00:00 по Москве (21:00 UTC)")
         print("🚀 Бот готов к работе!")
         
         # Запускаем бота
-        application.run_polling()
+        application.run_polling(allowed_updates=["message", "callback_query"])
         
     except Exception as e:
         logger.error(f"Ошибка при запуске бота: {e}")
         print(f"❌ Критическая ошибка: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
-
-
 
 

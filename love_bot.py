@@ -387,21 +387,20 @@ def main():
         # Настраиваем ежедневные уведомления с помощью JobQueue
         job_queue = application.job_queue
         
-        # ИСПРАВЛЕННОЕ ВРЕМЯ:
         # Обычные уведомления в 16:00 по МСК (13:00 UTC)
-        daily_time = time(hour=13, minute=0)  # 13:00 UTC = 16:00 МСК
+        daily_time = datetime.strptime("13:00", "%H:%M").time()
         
         # Праздничные уведомления в 00:00 по МСК (21:00 UTC предыдущего дня)
-        holiday_time = time(hour=21, minute=0)  # 21:00 UTC = 00:00 МСК
+        holiday_time = datetime.strptime("21:00", "%H:%M").time()
         
-        # Добавляем ежедневную job для основного напоминания
+        # Добавляем ежедневную job для основного напоминания (16:00 МСК)
         job_queue.run_daily(
             send_daily_reminder,
             time=daily_time,
             name="daily_reminder"
         )
         
-        # Добавляем ежедневную job для проверки праздников
+        # Добавляем ежедневную job для проверки праздников (00:00 МСК)
         job_queue.run_daily(
             send_holiday_reminders,
             time=holiday_time,
@@ -422,6 +421,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -399,7 +399,9 @@ def main():
         
         # Обычные уведомления в 13:00 по МСК (10:00 UTC)
         daily_time = datetime.strptime("10:00", "%H:%M").time()
-        daily_time_obj = datetime.combine(datetime.today(), daily_time).time()
+        # Получаем текущую дату в UTC
+        utc_now = datetime.utcnow()
+        daily_time_obj = datetime.combine(utc_now.date(), daily_time)
         
         # Праздничные уведомления в 00:00 по МСК (21:00 UTC предыдущего дня)
         holiday_time = datetime.strptime("21:00", "%H:%M").time()
@@ -437,5 +439,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

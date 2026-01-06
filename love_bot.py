@@ -2,7 +2,7 @@ import os
 import logging
 import random
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram.ext import JobQueue  # Явный импорт JobQueue
@@ -397,20 +397,16 @@ def main():
         
         # Настраиваем ежедневные уведомления с помощью JobQueue
         
-        # Обычные уведомления в 13:00 по МСК (10:00 UTC)
-        daily_time = datetime.strptime("10:00", "%H:%M").time()
-        # Получаем текущую дату в UTC
-        utc_now = datetime.utcnow()
-        daily_time_obj = datetime.combine(utc_now.date(), daily_time)
+        # Уведомления в 13:00 по МСК (10:00 UTC)
+        daily_time = time(hour=10, minute=0)  # 10:00 UTC = 13:00 МСК
         
-        # Праздничные уведомления в 00:00 по МСК (21:00 UTC предыдущего дня)
-        holiday_time = datetime.strptime("21:00", "%H:%M").time()
-        holiday_time_obj = datetime.combine(datetime.today(), holiday_time).time()
+        # Уведомления о праздниках в 00:00 по МСК (21:00 UTC предыдущего дня)
+        holiday_time = time(hour=21, minute=0)  # 21:00 UTC = 00:00 МСК
         
         # Добавляем ежедневную job для основного напоминания (13:00 МСК)
         job_queue.run_daily(
             send_daily_reminder,
-            time=daily_time_obj,
+            time=daily_time,
             days=tuple(range(7)),  # Каждый день недели
             name="daily_reminder"
         )
@@ -418,7 +414,7 @@ def main():
         # Добавляем ежедневную job для проверки праздников (00:00 МСК)
         job_queue.run_daily(
             send_holiday_reminders,
-            time=holiday_time_obj,
+            time=holiday_time,
             days=tuple(range(7)),  # Каждый день недели
             name="holiday_reminders"
         )
@@ -439,6 +435,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

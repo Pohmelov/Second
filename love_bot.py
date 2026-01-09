@@ -9,12 +9,12 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from telegram.ext import JobQueue
 from enum import Enum
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv('BOT_TOKEN')  # Получаем токен из переменных окружения
 
 # Настройки
-ANNIVERSARY_DATE = datetime(2026, 10, 26)
-START_DATE = datetime(2024, 10, 26)
-TIMEZONE_OFFSET = 3
+ANNIVERSARY_DATE = datetime(2026, 10, 26)  # Годовщина 26 октября 2026
+START_DATE = datetime(2024, 10, 26)  # Дата начала отношений
+TIMEZONE_OFFSET = 3  # Московское время UTC+3
 
 # Файлы для сохранения
 CHAT_IDS_FILE = "chat_ids.json"
@@ -85,13 +85,78 @@ NOTE_TYPES = {
     "📝 Список": "Список дел или покупок"
 }
 
+# Список любовных сообщений для случайной отправки
 LOVE_MESSAGES = [
     "Я тебя очень люблю, зай))💕",
-    # ... (остальные сообщения без изменений)
+    "Ты самая лучшая девушка на свете))🌟❤️",
+    "Каждый день с тобой - это счастье))💕",
+    "Спасибо, что ты есть у меня, малыш❤️",
+    "Я постоянно думаю о тебе, миленькая моя))💭💕",
+    "Ты мой мир, моя вселенная, мое все))❤️",
+    "Любви тебе, моя принцесса)👑💕",
+    "Обнимаю тебя крепко-крепко и не отпускаю))💕",
+    "Целую и обнимаю)\nмуа муа муа))❤️",
+    "Просто хотел напомнить, что ты лучшая💗",
+    "Ты в моих мыслях. Как всегда))❤️", 
+    "Ты — причина моей улыбки))💕",
+    "Я безумно по тебе скучаю, милая моя)",
+    "Ты вдохновляешь меня становиться лучше каждый день.",
+    "Как же мне повезло в жизни найти тебя))❤️",
+    "Мне не хватает твоего тепла рядом..",
+    "Любовь к тебе — это не чувство, а мое новое состояние души❤️",
+    "Моя любовь к тебе не имеет границ, начала и конца❤️",
+    "Ты мое самое дорогое сокровище))💕",
+    "Очень надеюсь, что при встрече не ослепну от твоей красоты))❤️",
+    "Ты слаще любого Nuts))❤️"
 ]
 
+# Праздники с сообщениями для уведомлений
 HOLIDAYS = {
-    # ... (праздники без изменений)
+    "🎄 Новый Год": {
+        "date": datetime(2026, 1, 1),
+        "day_before_message": "🎄 До Нового Года остался всего 1 день!! Готовь бенгальские огоньки))✨",
+        "day_of_message": "🎉🎄 C Новым Годом, миленькая моя девочка!))🎊\nПусть этот год принесет нам много счастливых моментов вместе!) Я тебя очень люблю))💕"
+    },
+    "⭐ Рождество": {
+        "date": datetime(2026, 1, 7),
+        "day_before_message": "⭐ Завтра Рождество, котеночек)",
+        "day_of_message": "⭐ С Рождеством Христовым, моя хорошая! Пусть в твоей жизни будет много света и пусть ангел-хранитель оберегает тебя))⭐"
+    },
+    "🛡️ 23 февраля": {
+        "date": datetime(2026, 2, 23),
+        "day_before_message": "Бегом в магазин за камуфляжными носочками)",  # Без уведомления
+        "day_of_message": "УиииИиИии, поздравь всех твоих родных и настоящих "      # Без уведомления
+    },
+    "🌺 8 Марта": {
+        "date": datetime(2026, 3, 8),
+        "day_before_message": "🌺 Завтра 8 Марта) Готовься к комплиментам, моя прекрасная))",
+        "day_of_message": "🌺 С 8 Марта, самая красивая и нежная девушка на свете!)) Ты - мое весеннее солнышко!))💐"
+    },
+    "🎉 🎂 Твой День Рождения": {
+        "date": datetime(2026, 3, 18),
+        "day_before_message": "🎂 Завтра твой День Рождения!! Готовься к самому лучшему дню в году!)",
+        "day_of_message": "🎉 Солнышко мое любимое)) С днем рождения тебя!!)) 🎊\nЖелаю тебе всего самого прекрасного, малыш)) Ты заслуживаешь весь мир!))\nЯ тебя безумно сильно люблю!))💝"
+    },
+    "🍮 🐣 Пасха": {
+        "date": datetime(2026, 4, 12),
+        "day_before_message": "🐣 Завтра Пасха! Готовимся к светлому празднику))",
+        "day_of_message": "🍮 Христос Воскрес, моя хорошая!) Пусть в твоей жизни всегда будет вера, надежда и любовь))💝"
+    },
+    "🎉 🎂 Мой День Рождения": {
+        "date": datetime(2026, 5, 12),
+        "day_before_message": "У кого-то днюшка скоро? Не знаю, я не в курсе",  # Без уведомления
+        "day_of_message": "УИУИУИУУИУИУ"      # Без уведомления
+    },
+    "☀️ Первый день лета": {
+        "date": datetime(2026, 6, 1),
+        "day_before_message": "☀️ Завтра первый день лета))",
+        "day_of_message": "☀️ С первым днем лета, мое солнышко!))\nПусть это лето будет самым теплым и счастливым для нас))🌞"
+    },
+    "❤️ Наша годовщина": {
+        "date": datetime(2026, 10, 26),
+        "day_before_message": "💝 Завтра наша годовщина!! Я так тебя люблю и жду этот день!)",
+        "day_of_message": "🎉 С НАШЕЙ ГОДОВЩИНОЮ, МОЯ ЛЮБИМАЯ!!! 💕\nЭто самый счастливый день в моей жизни! Спасибо, что ты со мной!\nЯ тебя безумно люблю, малышечка моя, Нинуличка))💖"
+    },
 }
 
 # Настройка логирования
@@ -102,7 +167,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def get_correct_form(number, forms):
-    """Возвращает правильную форму слова для числа"""
+    """
+    Возвращает правильную форму слова для числа
+    forms: [форма для 1, форма для 2-4, форма для 5-0]
+    Например: get_correct_form(5, ['день', 'дня', 'дней']) -> 'дней'
+    """
     if number % 10 == 1 and number % 100 != 11:
         return forms[0]
     elif 2 <= number % 10 <= 4 and (number % 100 < 10 or number % 100 >= 20):
@@ -215,14 +284,53 @@ def create_note_detail_keyboard(note_id):
     ]
     return InlineKeyboardMarkup(keyboard)
 
-# Обработчики команд (остальные без изменений)
+def get_days_until_anniversary():
+    """Вычисляет сколько дней осталось до годовщины"""
+    now_utc = datetime.now(timezone.utc)
+    now_moscow = now_utc + timedelta(hours=TIMEZONE_OFFSET)
+    current_date = now_moscow.date()
+    
+    # Вычисляем разницу в днях
+    next_anniversary = ANNIVERSARY_DATE.replace(year=current_date.year)
+    if next_anniversary.date() < current_date:
+        next_anniversary = next_anniversary.replace(year=current_date.year + 1)
+    
+    return (next_anniversary.date() - current_date).days
+
+def get_days_together():
+    """Вычисляет сколько дней мы уже вместе"""
+    now_utc = datetime.now(timezone.utc)
+    now_moscow = now_utc + timedelta(hours=TIMEZONE_OFFSET)
+    current_date = now_moscow.date()
+    
+    days_together = (current_date - START_DATE.date()).days
+    return days_together
+
+def get_days_until_holiday(holiday_date):
+    """Вычисляет сколько дней осталось до праздника"""
+    now_utc = datetime.now(timezone.utc)
+    now_moscow = now_utc + timedelta(hours=TIMEZONE_OFFSET)
+    current_date = now_moscow.date()
+    
+    # Вычисляем разницу в днях
+    next_holiday = holiday_date.replace(year=current_date.year)
+    if next_holiday.date() < current_date:
+        next_holiday = next_holiday.replace(year=current_date.year + 1)
+    
+    return (next_holiday.date() - current_date).days
+
+# ========== ОБРАБОТЧИКИ КОМАНД ==========
+
 async def start_command(update, context):
     """Обработчик команды /start"""
     user = update.effective_user
     chat_id = update.effective_chat.id
     
+    # Сохраняем ID чата для ежедневных уведомлений
     CHAT_IDS.add(chat_id)
     save_chat_ids()
+    
+    days_together = get_days_together()
     
     welcome_text = f"""💕 Привет, моя любимая девочка))
 
@@ -242,9 +350,67 @@ async def start_command(update, context):
         welcome_text, 
         reply_markup=create_main_keyboard()
     )
-    logger.info(f"Пользователь {user.id} запустил бота")
+    logger.info(f"Пользователь {user.id} запустил бота, chat_id: {chat_id}")
 
-# ... (остальные команды: days_command, love_command, holidays_command, days_together_command без изменений)
+async def days_command(update, context):
+    """Показывает сколько дней осталось до годовщины"""
+    days_left = get_days_until_anniversary()
+    days_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
+    
+    if days_left == 0:
+        message = "🎉 Малыш, с годовщиной)) 🎉\nСегодня наш особенный день) Люблю тебя больше всего на свете) Мы дождались)💕"
+    elif days_left == 1:
+        message = f"Завтра наша годовщина) Всего 1 {days_form} остался)❤️\nЯ так тебя люблю))"
+    else:
+        message = f"До нашей годовщины\nосталось {days_left} {days_form}))💕"
+    
+    await update.message.reply_text(message, reply_markup=create_main_keyboard())
+
+async def love_command(update, context):
+    """Отправляет случайное любовное сообщение"""
+    love_message = random.choice(LOVE_MESSAGES)
+    await update.message.reply_text(love_message, reply_markup=create_main_keyboard())
+
+async def holidays_command(update, context):
+    """Показывает все ближайшие праздники"""
+    holiday_text = "🎉 Сколько осталось до праздников:\n\n"
+    
+    # Сортируем праздники по количеству оставшихся дней
+    sorted_holidays = sorted(
+        [(name, data["date"]) for name, data in HOLIDAYS.items()],
+        key=lambda x: get_days_until_holiday(x[1])
+    )
+    
+    for holiday_name, holiday_date in sorted_holidays:
+        days_left = get_days_until_holiday(holiday_date)
+        days_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
+        
+        if days_left == 0:
+            holiday_text += f" {holiday_name} - СЕГОДНЯ!🎊\n"
+        elif days_left == 1:
+            holiday_text += f" {holiday_name} - завтра! ({holiday_date.strftime('%d.%m')})\n"
+        else:
+            holiday_text += f" {holiday_name} - через {days_left} {days_form} ({holiday_date.strftime('%d.%m')})\n"
+    
+    await update.message.reply_text(holiday_text, reply_markup=create_main_keyboard())
+
+async def days_together_command(update, context):
+    """Показывает сколько дней мы уже вместе"""
+    days_together = get_days_together()
+    days_form = get_correct_form(days_together, ['день', 'дня', 'дней'])
+    
+    if days_together == 365:
+        message = f"Ровно {days_together} {days_form} мы вместе))❤️\nЭто был самый счастливый год в моей жизни)) Люблю тебя безумно)❤️❤️❤️"
+    elif days_together > 365:
+        years = days_together // 365
+        remaining_days = days_together % 365
+        years_form = get_correct_form(years, ['год', 'года', 'лет'])
+        days_form_remaining = get_correct_form(remaining_days, ['день', 'дня', 'дней'])
+        message = f"❤️ Уже {years} {years_form} и {remaining_days} {days_form_remaining} мы вместе)\n\nВсего {days_together} {days_form} счастья) И с каждым днем я люблю тебя все сильнее) 💕"
+    else:
+        message = f"💕 Мы вместе уже {days_together} {days_form})\n\nКаждый из них был наполнен твоей любовью и теплом) Я самый счастливый)💖"
+    
+    await update.message.reply_text(message, reply_markup=create_main_keyboard())
 
 async def notes_command(update, context):
     """Обработчик команды для заметок"""
@@ -399,60 +565,6 @@ async def handle_callback_query(update, context):
         )
         return
 
-async def handle_message(update, context):
-    """Обработчик обычных сообщений"""
-    user_text = update.message.text
-    chat_id = update.effective_chat.id
-    
-    # Обработка нажатий кнопок меню
-    if user_text == "📅 До годовщины":
-        await days_command(update, context)
-    elif user_text == "💝 Случайное сообщение":
-        await love_command(update, context)
-    elif user_text == "🎉 До праздников":
-        await holidays_command(update, context)
-    elif user_text == "📊 Дней вместе":
-        await days_together_command(update, context)
-    elif user_text == "📝 Мои заметки":
-        await notes_command(update, context)
-    
-    # Обработка создания заметки (ввод текста)
-    elif 'note_state' in context.user_data:
-        state = context.user_data['note_state']
-        
-        if state == NoteState.ENTERING_TEXT:
-            if len(user_text) > 500:
-                await update.message.reply_text(
-                    "❌ Текст слишком длинный (максимум 500 символов). Попробуй короче:",
-                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Отмена", callback_data="cancel_note")]])
-                )
-                return
-            
-            context.user_data['note_text'] = user_text
-            context.user_data['note_state'] = NoteState.SELECTING_DATE
-            
-            await update.message.reply_text(
-                "📅 Выбери дату для напоминания:",
-                reply_markup=create_date_keyboard()
-            )
-        
-        # Пропускаем другие состояния - они обрабатываются через кнопки
-    
-    # Обработка обычных сообщений (без изменений)
-    elif any(word in user_text.lower() for word in ['привет', 'пивет', 'hi', 'здаров']):
-        await update.message.reply_text("Привет, любимая)💕", reply_markup=create_main_keyboard())
-    elif any(word in user_text.lower() for word in ['люблю', 'love', 'обожаю']):
-        await update.message.reply_text("Я тебя тоже очень люблю))💕", reply_markup=create_main_keyboard())
-    elif any(word in user_text.lower() for word in ['муаа', 'муа', 'целую']):
-        await update.message.reply_text("Муа муа муаа муа муа муаа))💕", reply_markup=create_main_keyboard())
-    elif any(word in user_text.lower() for word in ['скучаю', 'скучаешь', 'miss']):
-        await update.message.reply_text("Я тоже очень по тебе скучаю) С нетерпением жду нашей встречи)) 💖", reply_markup=create_main_keyboard())
-    else:
-        await update.message.reply_text(
-            'Я тебя не совсем понял, солнышко) 💕\nИспользуй кнопки меню внизу ❤️',
-            reply_markup=create_main_keyboard()
-        )
-
 async def handle_button_callback(update, context):
     """Обработчик для inline кнопок (дата и время)"""
     query = update.callback_query
@@ -516,6 +628,116 @@ async def handle_button_callback(update, context):
         
         logger.info(f"Создана заметка для chat_id {chat_id}: {note_type} на {selected_date} {selected_time}")
 
+async def handle_message(update, context):
+    """Обработчик обычных сообщений"""
+    user_text = update.message.text
+    chat_id = update.effective_chat.id
+    
+    # Обработка нажатий кнопок меню
+    if user_text == "📅 До годовщины":
+        await days_command(update, context)
+    elif user_text == "💝 Случайное сообщение":
+        await love_command(update, context)
+    elif user_text == "🎉 До праздников":
+        await holidays_command(update, context)
+    elif user_text == "📊 Дней вместе":
+        await days_together_command(update, context)
+    elif user_text == "📝 Мои заметки":
+        await notes_command(update, context)
+    
+    # Обработка создания заметки (ввод текста)
+    elif 'note_state' in context.user_data:
+        state = context.user_data['note_state']
+        
+        if state == NoteState.ENTERING_TEXT:
+            if len(user_text) > 500:
+                await update.message.reply_text(
+                    "❌ Текст слишком длинный (максимум 500 символов). Попробуй короче:",
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Отмена", callback_data="cancel_note")]])
+                )
+                return
+            
+            context.user_data['note_text'] = user_text
+            context.user_data['note_state'] = NoteState.SELECTING_DATE
+            
+            await update.message.reply_text(
+                "📅 Выбери дату для напоминания:",
+                reply_markup=create_date_keyboard()
+            )
+        
+        # Пропускаем другие состояния - они обрабатываются через кнопки
+    
+    # Обработка обычных сообщений (без изменений)
+    elif any(word in user_text.lower() for word in ['привет', 'пивет', 'hi', 'здаров']):
+        await update.message.reply_text("Привет, любимая)💕", reply_markup=create_main_keyboard())
+    elif any(word in user_text.lower() for word in ['люблю', 'love', 'обожаю']):
+        await update.message.reply_text("Я тебя тоже очень люблю))💕", reply_markup=create_main_keyboard())
+    elif any(word in user_text.lower() for word in ['муаа', 'муа', 'целую']):
+        await update.message.reply_text("Муа муа муаа муа муа муаа))💕", reply_markup=create_main_keyboard())
+    elif any(word in user_text.lower() for word in ['скучаю', 'скучаешь', 'miss']):
+        await update.message.reply_text("Я тоже очень по тебе скучаю) С нетерпением жду нашей встречи)) 💖", reply_markup=create_main_keyboard())
+    else:
+        await update.message.reply_text(
+            'Я тебя не совсем понял, солнышко) 💕\nИспользуй кнопки меню внизу ❤️',
+            reply_markup=create_main_keyboard()
+        )
+
+async def send_daily_reminder(context: ContextTypes.DEFAULT_TYPE):
+    """Ежедневное напоминание в 13:00 по Москве (10:00 UTC)"""
+    # Проверяем, что бот инициализирован
+    if not context.bot:
+        logger.error("Bot not initialized in job context")
+        return
+        
+    days_left = get_days_until_anniversary()
+    days_together = get_days_together()
+    days_left_form = get_correct_form(days_left, ['день', 'дня', 'дней'])
+    days_together_form = get_correct_form(days_together, ['день', 'дня', 'дней'])
+    
+    # Основное сообщение о годовщине
+    if days_left == 0:
+        message = "🎉 С годовщиной, мое солнышко)) 🎉\nСегодня наш особенный день)) Люблю тебя больше всего на свете))💕\nТы сделала меня самым счастливым человеком!"
+    elif days_left == 1:
+        message = f"Завтра наша годовщина, милая))\nВсего 1 {days_left_form} остался)\nЯ так тебя люблю))❤️"
+    else:
+        message = f"❤️ До нашей годовщины осталось {days_left} {days_left_form}))\nА сегодня у нас уже {days_together} {days_together_form} вместе))💕"
+    
+    # Отправляем основное сообщение во все сохраненные чаты
+    for chat_id in CHAT_IDS.copy():
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=message)
+            logger.info(f"Ежедневное уведомление отправлено в chat_id: {chat_id}")
+        except Exception as e:
+            logger.error(f"Ошибка отправки в chat_id {chat_id}: {e}")
+            # Удаляем невалидный chat_id
+            CHAT_IDS.discard(chat_id)
+            save_chat_ids()
+
+async def send_holiday_reminders(context: ContextTypes.DEFAULT_TYPE):
+    """Проверяет и отправляет уведомления о праздниках в 00:00 по Москве (21:00 UTC)"""
+    # Проверяем, что бот инициализирован
+    if not context.bot:
+        logger.error("Bot not initialized in job context")
+        return
+        
+    now_utc = datetime.now(timezone.utc)
+    now_moscow = now_utc + timedelta(hours=TIMEZONE_OFFSET)
+    current_date = now_moscow.date()
+    
+    for holiday_name, holiday_data in HOLIDAYS.items():
+        holiday_date = holiday_data["date"]
+        days_until_holiday = get_days_until_holiday(holiday_date)
+        
+        # Проверяем, нужно ли отправлять уведомление за день до праздника
+        if days_until_holiday == 1 and holiday_data["day_before_message"]:
+            message = holiday_data["day_before_message"]
+            await send_message_to_all_chats(context, message, f"предпраздничное уведомление для {holiday_name}")
+        
+        # Проверяем, нужно ли отправлять уведомление в день праздника
+        elif days_until_holiday == 0 and holiday_data["day_of_message"]:
+            message = holiday_data["day_of_message"]
+            await send_message_to_all_chats(context, message, f"праздничное уведомление для {holiday_name}")
+
 async def send_note_reminders(context: ContextTypes.DEFAULT_TYPE):
     """Проверяет и отправляет напоминания о заметках"""
     if not context.bot:
@@ -552,20 +774,38 @@ async def send_note_reminders(context: ContextTypes.DEFAULT_TYPE):
             NOTES[chat_id] = [n for n in NOTES[chat_id] if n not in notes_to_remove]
             save_notes()
 
-# ... (остальные функции: send_daily_reminder, send_holiday_reminders без изменений)
+async def send_message_to_all_chats(context, message, log_description):
+    """Вспомогательная функция для отправки сообщений во все чаты"""
+    for chat_id in CHAT_IDS.copy():
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=message)
+            logger.info(f"{log_description} отправлено в chat_id: {chat_id}")
+        except Exception as e:
+            logger.error(f"Ошибка отправки {log_description} в chat_id {chat_id}: {e}")
+            # Удаляем невалидный chat_id
+            CHAT_IDS.discard(chat_id)
+            save_chat_ids()
 
 def main():
     """Основная функция"""
+    # Проверяем наличие токена
     if not BOT_TOKEN:
-        logger.error("❌ BOT_TOKEN не найден!")
+        logger.error("❌ BOT_TOKEN не найден! Убедитесь, что задана переменная окружения.")
+        print("❌ ОШИБКА: BOT_TOKEN не найден!")
+        print("💡 Решение: Добавьте переменную BOT_TOKEN в настройки Railway")
         return
     
     try:
+        # Создаем Application с явным указанием JobQueue
         application = Application.builder().token(BOT_TOKEN).build()
+        
+        # Получаем JobQueue
         job_queue = application.job_queue
         
         if job_queue is None:
             logger.error("JobQueue не инициализирована!")
+            print("❌ ОШИБКА: JobQueue не инициализирована!")
+            print("💡 Решение: Убедитесь, что установлен пакет python-telegram-bot[job-queue]")
             return
         
         # Добавляем обработчики команд
@@ -584,11 +824,10 @@ def main():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
         
         # Настраиваем ежедневные задачи
-        daily_time = time(hour=10, minute=0)
-        holiday_time = time(hour=21, minute=0)
-        notes_check_time = time(hour=20, minute=55)  # Проверка каждую минуту
+        daily_time = time(hour=10, minute=0)  # 10:00 UTC = 13:00 МСК
+        holiday_time = time(hour=21, minute=0)  # 21:00 UTC = 00:00 МСК
         
-        # Ежедневное напоминание
+        # Ежедневное напоминание (13:00 МСК)
         job_queue.run_daily(
             send_daily_reminder,
             time=daily_time,
@@ -596,7 +835,7 @@ def main():
             name="daily_reminder"
         )
         
-        # Проверка праздников
+        # Проверка праздников (00:00 МСК)
         job_queue.run_daily(
             send_holiday_reminders,
             time=holiday_time,
@@ -615,17 +854,21 @@ def main():
         print("✅ Бот запущен с функцией ЗАМЕТОК!")
         print("📝 Новая функция: Заметки с напоминаниями")
         print("⏰ Проверка заметок: каждую минуту")
+        print("📅 Обычные уведомления: 13:00 по Москве")
+        print("🎉 Праздничные уведомления: 00:00 по Москве")
         print("🚀 Бот готов к работе!")
         
         application.run_polling(allowed_updates=["message", "callback_query"])
         
     except Exception as e:
         logger.error(f"Ошибка при запуске бота: {e}")
+        print(f"❌ Критическая ошибка: {e}")
         import traceback
         traceback.print_exc()
 
 if __name__ == "__main__":
     main()
+
 
 
 
